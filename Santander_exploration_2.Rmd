@@ -1,0 +1,78 @@
+---
+title: "Santander exploration"
+author: "Juho Salminen"
+date: "7 April 2016"
+output: html_document
+---
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+library(knitr)
+opts_chunk$set(echo=FALSE, message=FALSE)
+```
+
+```{r}
+# Required libraries
+require(ggplot2)
+theme_set(theme_bw(15))
+
+# Load data
+train_raw <- read.csv("Data/train.csv", header = TRUE)
+test_raw <- read.csv("Data/test.csv", header = TRUE)
+sample_submission <- read.csv("Data/sample_submission.csv", header = TRUE)
+```
+
+# Data set
+
+Training set dimensions: `r dim(train_raw)`
+
+Test set dimensions: `r dim(test_raw)`
+
+Training set missing values: `r sum(is.na(train_raw))`
+
+Test set missing values: `r sum(is.na(test_raw))`
+
+Variable classes: `r table(sapply(train_raw, class))`
+
+## Variable names:
+```{r}
+names(train_raw)
+```
+
+## Descriptive statistics
+```{r}
+summary(train_raw)
+```
+
+# Distributions of variables
+```{r}
+# Subset data for plotting
+set.seed(308)
+index <- sample(nrow(train_raw), 1000)
+data_sample <- train_raw[index, ]
+
+# Change TARGET to factor
+data_sample$TARGET <- as.factor(data_sample$TARGET)
+
+# Extract variable names
+data_names <- names(data_sample)
+
+# Iterate over variable names (except ID and TARGET)
+# and plot distributions
+figno = 1
+for (colname in data_names) {
+    if (colname != "ID" & colname != "TARGET") {
+        df <- data_sample[, c(colname, "TARGET")]
+        names(df) <- c("variable", "TARGET")
+        figure <- ggplot(df, aes(variable, color = TARGET)) + 
+            geom_density() + 
+            facet_wrap(~TARGET) +
+            ggtitle(paste("Variable ", figno, ": ", colname)) +
+            xlab(colname)
+        print(figure)
+        figno <- figno + 1
+    }
+}
+```
+
+
